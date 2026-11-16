@@ -51,10 +51,15 @@ file saving, close/relaunch, installation and replacement on each platform.
 For signed production Mac builds, configure repository secrets `MAC_CSC_LINK`,
 `MAC_CSC_KEY_PASSWORD`, `APPLE_API_KEY_BASE64`, `APPLE_API_KEY_ID`, and
 `APPLE_API_ISSUER`. Windows uses `WIN_CSC_LINK` and `WIN_CSC_KEY_PASSWORD`.
-The Mac API key is decoded to a temporary runner file. All public Mac releases require Developer ID signing and notarization, including
-betas. Stable Windows versions require code signing. No credentials belong in
+The Mac API key is decoded to a temporary runner file. Trusted public Mac releases require Developer ID signing and notarization.
+An unnotarized testing release is allowed only for prerelease versions when
+`unnotarized_mac_preview` is explicitly selected in the workflow. It still must
+pass strict code-signature verification and match the assessed DMG checksum.
+Its release notes must explain manual macOS approval and unavailable automatic
+Mac updates. Stable versions cannot use this testing option. Stable Windows
+versions require code signing. No credentials belong in
 source. Unsigned Windows preview builds must be labeled as such. Ad-hoc Mac builds are
-for internal testing only. Mac public release checks assess the actual final DMG
+for development and explicitly labeled testing previews. Mac public release checks assess the actual final DMG
 after applying download quarantine, including code integrity, Developer ID, a
 stapled notarization ticket, and Gatekeeper approval. The publication script
 requires the assessment to match the installer checksum.
