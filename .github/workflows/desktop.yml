@@ -42,13 +42,15 @@ jobs:
       - name: Compile bundled media tools (Unix)
         if: runner.os != 'Windows'
         shell: bash
-        run: bash packaging/macos/build_ffmpeg.sh "$PWD/dist/engine/tools" "$PWD/dist/ffmpeg-build"
+        run: bash packaging/desktop/build_ffmpeg.sh "$PWD/dist/engine/tools" "$PWD/dist/ffmpeg-build"
       - name: Compile bundled media tools (Windows)
         if: runner.os == 'Windows'
         shell: msys2 {0}
-        run: bash packaging/macos/build_ffmpeg.sh "$PWD/dist/engine/tools" "$PWD/dist/ffmpeg-build"
+        run: bash packaging/desktop/build_ffmpeg.sh "$PWD/dist/engine/tools" "$PWD/dist/ffmpeg-build"
       - name: Bundle portable Python, dependencies, and models
         run: uv run --no-project --python 3.11 python scripts/build_engine.py
+      - name: Verify bundled separation and exports
+        run: uv run --no-project --python 3.11 python scripts/smoke_engine.py dist/engine
       - run: npm ci
       - run: npm test
       - name: Package desktop application

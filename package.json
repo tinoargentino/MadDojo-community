@@ -1,7 +1,7 @@
 {
   "name": "maddojo",
   "productName": "MadDojo",
-  "version": "0.2.0",
+  "version": "0.2.0-beta.1",
   "description": "A local music practice room",
   "author": "MadDojo contributors",
   "license": "MIT",
@@ -15,27 +15,78 @@
     "desktop:pack": "electron-builder --dir --publish never",
     "desktop:dist": "electron-builder --publish never"
   },
-  "dependencies": {"electron-updater": "6.8.11"},
-  "devDependencies": {"electron": "45.3.3", "electron-builder": "26.18.0"},
+  "dependencies": {
+    "electron-updater": "6.8.11"
+  },
+  "devDependencies": {
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0"
+  },
   "build": {
     "appId": "com.maddojo.desktop",
     "productName": "MadDojo",
-    "directories": {"output": "dist/desktop"},
-    "files": ["desktop/**/*", "package.json", "LICENSE"],
-    "extraResources": [{"from": "dist/engine", "to": "engine"}],
+    "directories": {
+      "output": "dist/desktop"
+    },
+    "files": [
+      "desktop/**/*",
+      "package.json",
+      "LICENSE"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/engine",
+        "to": "engine"
+      }
+    ],
     "asar": true,
-    "publish": [{"provider": "github", "owner": "tinoargentino", "repo": "MadDojo-community", "releaseType": "draft"}],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "tinoargentino",
+        "repo": "MadDojo-community",
+        "releaseType": "draft"
+      }
+    ],
     "artifactName": "MadDojo-${version}-${os}-${arch}.${ext}",
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.music",
       "hardenedRuntime": true,
       "entitlements": "packaging/desktop/entitlements.mac.plist",
       "entitlementsInherit": "packaging/desktop/entitlements.mac.plist",
-      "extendInfo": {"NSMicrophoneUsageDescription": "Record practice takes and show live pitch feedback."}
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Record practice takes and show live pitch feedback."
+      }
     },
-    "win": {"target": ["nsis"]},
-    "nsis": {"oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "deleteAppDataOnUninstall": false},
-    "linux": {"target": ["AppImage", "deb"], "category": "AudioVideo", "maintainer": "MadDojo contributors", "desktop": {"entry": {"StartupWMClass": "MadDojo"}}}
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "AudioVideo",
+      "maintainer": "MadDojo contributors",
+      "desktop": {
+        "entry": {
+          "StartupWMClass": "MadDojo"
+        }
+      }
+    },
+    "icon": "packaging/desktop/icon.png"
   }
 }

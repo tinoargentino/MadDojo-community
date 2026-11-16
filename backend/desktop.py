@@ -40,7 +40,9 @@ def main():
                 request = urllib.request.Request(url + '/api/health', headers=headers)
                 with urllib.request.urlopen(request, timeout=1) as response:
                     if json.load(response).get('app') == 'MadDojo':
-                        args.ready_file.write_text(json.dumps({'url': url}), encoding='utf-8')
+                        temporary = args.ready_file.with_suffix('.tmp')
+                        temporary.write_text(json.dumps({'url': url}), encoding='utf-8')
+                        temporary.replace(args.ready_file)
                         return
             except (OSError, ValueError):
                 time.sleep(.5)

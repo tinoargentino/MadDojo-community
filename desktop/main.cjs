@@ -1,5 +1,5 @@
 const {app, BrowserWindow, Menu, dialog, shell, session, systemPreferences} = require('electron');
-const {spawn} = require('node:child_process');
+const {spawn, spawnSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -9,6 +9,8 @@ let window, child, origin, stopping = false, stopPromise, startupTimer;
 let updateAvailable = false, downloaded = false;
 const token = crypto.randomBytes(32).toString('hex');
 const smoke = process.argv.includes('--smoke-test');
+if (smoke) app.commandLine.appendSwitch('use-fake-device-for-media-stream');
+let engineExited = false;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 app.setName('MadDojo');
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -27,10 +29,10 @@ async function stopEngine() {
   if (stopPromise) return stopPromise;
   stopPromise = (async () => {
     clearTimeout(startupTimer);
-    if (!child || child.exitCode !== null) return;
+    if (!child || engineExited) return;
     child.stdin.end(); // The engine shuts down workers when its parent closes stdin.
-    for (let i = 0; i < 100 && child.exitCode === null; i++) await delay(100);
-    if (child.exitCode === null) {
+    for (let i = 0; i < 100 && !engineExited; i++) await delay(100);
+    if (!engineExited) {
       if (process.platform === 'win32') {
         await new Promise(resolve => {
           const task = spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {windowsHide: true});
@@ -47,6 +49,15 @@ app.on('before-quit', event => {
   stopEngine().finally(() => app.quit());
 });
 app.on('window-all-closed', () => app.quit());
+function supportsUpdates() {
+  if (!app.isPackaged) return false;
+  if (process.platform === 'linux') return Boolean(process.env.APPIMAGE);
+  if (process.platform === 'darwin') {
+    const signature = spawnSync('/usr/bin/codesign', ['-dv', '--verbose=4', process.execPath], {encoding: 'utf8'});
+    return signature.status === 0 && /Authority=Developer ID Application:/.test(signature.stderr);
+  }
+  return true;
+}
 function updateMenu() {
   const updateLabel = downloaded ? 'Restart to install update…' : updateAvailable ? 'Download update…' : 'Check for updates…';
   const template = [
@@ -72,7 +83,7 @@ function libraryPath() {
   return path.join(app.getPath('userData'), 'Library');
 }
 async function checkUpdate() {
-  if (!app.isPackaged || (process.platform === 'linux' && !process.env.APPIMAGE)) {
+  if (!supportsUpdates()) {
     return dialog.showMessageBox(window, {message: 'Updates are available from MadDojo releases', detail: 'This installation uses manual updates.', buttons: ['Close', 'Open releases']}).then(({response}) => {
       if (response === 1) shell.openExternal('https://github.com/tinoargentino/MadDojo-community/releases');
     });
@@ -99,7 +110,7 @@ function configureUpdates() {
     dialog.showMessageBox(window, {message: `MadDojo ${info.version} is available`, detail: 'Download it from Help → Download update. Installation happens only when you choose to restart.'});
   });
   autoUpdater.on('update-downloaded', () => { downloaded = true; updateMenu(); dialog.showMessageBox(window, {message: 'Update ready', detail: 'Finish your practice, then choose Help → Restart to install update.'}); });
-  if (app.isPackaged && (process.platform !== 'linux' || process.env.APPIMAGE) && !smoke) {
+  if (supportsUpdates() && !smoke) {
     setTimeout(() => autoUpdater.checkForUpdates().catch(error => console.error(error.message)), 10000).unref();
   }
 }
@@ -121,7 +132,7 @@ async function start() {
   child = spawn(runtime.python, ['-m', 'backend.desktop', '--ready-file', readyFile, '--port', String(port), '--parent-stdin'], {cwd: runtime.app, env, windowsHide: true, stdio: ['pipe', log, log]});
   fs.closeSync(log);
   child.on('error', fail);
-  child.on('exit', (code) => { if (!stopping) fail(new Error(`The practice engine stopped (${code}). See engine.log.`)); });
+  child.on('exit', (code) => { engineExited = true; if (!stopping) fail(new Error(`The practice engine stopped (${code}). See engine.log.`)); });
   updateMenu();
   window = new BrowserWindow({width: 1360, height: 900, minWidth: 820, minHeight: 600, show: false, backgroundColor: '#f4f1e8', title: 'MadDojo', webPreferences: {nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true, spellcheck: false}});
   window.on('close', event => {
@@ -140,6 +151,7 @@ async function start() {
   ses.setPermissionCheckHandler((contents, permission, requestingOrigin, details) => contents === window.webContents && isLocalURL(requestingOrigin, origin) && permission === 'media' && (!details.mediaType || details.mediaType === 'audio'));
   ses.setPermissionRequestHandler(async (contents, permission, callback, details) => {
     if (contents !== window.webContents || permission !== 'media' || !isLocalURL(details.requestingUrl, origin) || details.mediaTypes?.some(type => type !== 'audio')) return callback(false);
+    if (smoke) return callback(true);
     if (process.platform === 'darwin') return callback(await systemPreferences.askForMediaAccess('microphone'));
     const {response} = await dialog.showMessageBox(window, {message: 'Allow microphone access?', detail: 'MadDojo uses your microphone for practice takes and pitch feedback.', buttons: ['Allow', 'Cancel'], defaultId: 0, cancelId: 1});
     callback(response === 0);
@@ -165,7 +177,15 @@ async function start() {
       if (smoke) {
         const result = await window.webContents.executeJavaScript(`fetch('api/health').then(r => r.json()).then(h => ({health:h.app, title:document.title, audio:!!window.AudioContext, media:!!navigator.mediaDevices, node:typeof require}))`);
         if (result.health !== 'MadDojo' || !result.audio || !result.media || result.node !== 'undefined') throw new Error('Desktop renderer smoke failed: '+JSON.stringify(result));
-        console.log('DESKTOP_SMOKE_OK', JSON.stringify(result));
+        const recording = await window.webContents.executeJavaScript(`(async () => {
+          const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+          const recorder = new MediaRecorder(stream); const chunks = [];
+          const saved = new Promise(resolve => {recorder.ondataavailable = e => chunks.push(e.data); recorder.onstop = () => resolve(chunks.reduce((n,c) => n+c.size,0));});
+          recorder.start(); await new Promise(r => setTimeout(r,400)); recorder.stop();
+          const bytes = await saved; stream.getTracks().forEach(t => t.stop()); return bytes;
+        })()`);
+        if (!recording) throw new Error('Synthetic microphone recording failed');
+        console.log('DESKTOP_SMOKE_OK', JSON.stringify({...result, recordedBytes:recording}));
         app.quit();
       }
       return;

@@ -15,3 +15,9 @@ metadata for each dependency's license. The source ZIP contains no model
 weights or third-party executables. Preserve third-party notices and source
 obligations when redistributing binary bundles. Import only audio you have
 permission to use and follow the source service's terms.
+
+The desktop edition also includes Electron (MIT; Chromium and Node retain their
+bundled license notices) and electron-updater (MIT). CPU-only PyTorch is bundled.
+All three desktop builds compile FFmpeg/LAME from the included source recipe;
+exact source archives and notices ship under engine/tools/third-party-sources.
+Python's license and package distribution metadata remain in the bundled runtime.

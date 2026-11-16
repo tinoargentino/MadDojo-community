@@ -42,7 +42,7 @@ def build():
     requirements.write_text('\n'.join(lines) + '\n', encoding='utf-8')
     run('uv', 'pip', 'install', '--python', python, '--target', site, '--no-deps', '--link-mode', 'copy', '-r', requirements)
     torch_args = ['--index-url', 'https://download.pytorch.org/whl/cpu'] if sys.platform != 'darwin' else []
-    run('uv', 'pip', 'install', '--python', python, '--target', site, '--link-mode', 'copy', '--reinstall', 'torch==2.5.1', 'torchaudio==2.5.1', *torch_args)
+    run('uv', 'pip', 'install', '--python', python, '--target', site, '--link-mode', 'copy', '--reinstall', '--no-deps', 'torch==2.5.1', 'torchaudio==2.5.1', *torch_args)
     app = engine / 'app'
     if app.exists(): shutil.rmtree(app)
     app.mkdir()
@@ -52,7 +52,7 @@ def build():
     notices.mkdir(exist_ok=True)
     for name in ['LICENSE', 'THIRD_PARTY.md']:
         shutil.copy2(ROOT / name, notices / name)
-    shutil.copy2(ROOT / 'packaging/macos/build_ffmpeg.sh', engine / 'tools/third-party-sources/build_ffmpeg.sh')
+    shutil.copy2(ROOT / 'packaging/desktop/build_ffmpeg.sh', engine / 'tools/third-party-sources/build_ffmpeg.sh')
     env = os.environ | {'TORCH_HOME': str(engine / 'models'), 'PYTHONUTF8': '1', 'PYTHONDONTWRITEBYTECODE': '1'}
     run(python, ROOT / 'scripts/prepare_model.py', '--guitar', env=env)
     run(python, '-c', 'import torch, torchaudio, librosa, soundfile, fastapi, yt_dlp; print("Engine dependencies OK", torch.__version__)')
