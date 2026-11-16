@@ -1,4 +1,17 @@
-# Verification
+# Beta.2 public installer verification
+
+[Desktop beta.2](https://github.com/tinoargentino/MadDojo-community/releases/tag/v0.2.0-beta.2)
+publishes the repaired Mac bundle as a new installer version. All three native
+installer jobs passed in [the beta.2 build](https://github.com/tinoargentino/MadDojo-community/actions/runs/43957845683).
+The original publication step failed on nested artifact paths; the repaired
+publisher assembled and published those same checked binaries. A regression check
+covers that artifact layout and duplicate filenames; 21 JavaScript checks pass.
+
+The public Mac DMG was downloaded in full and its SHA-256 matches the installer
+assessed on macOS. Signature integrity passes. Developer ID/notarization and
+default Gatekeeper approval remain absent; this is an explicitly selected
+unnotarized testing preview, with manual per-app approval potentially required.
+All three public update manifests identify version 0.2.0-beta.2.
 
 ## Mac download rejection
 

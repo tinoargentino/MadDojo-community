@@ -15,26 +15,30 @@ The desktop packaging pipeline builds these native formats:
 
 | Platform | Installer |
 | --- | --- |
-| Windows x64 | Setup `.exe`, per-user install and Start menu shortcut |
-| macOS Apple Silicon | Download blocked; corrected signing is being verified |
-| Linux x64 | `.AppImage` and `.deb` |
+| Windows x64 | [Setup installer](https://github.com/tinoargentino/MadDojo-community/releases/download/v0.2.0-beta.2/MadDojo-0.2.0-beta.2-win-x64.exe) |
+| macOS Apple Silicon | [Beta.2 DMG](https://github.com/tinoargentino/MadDojo-community/releases/download/v0.2.0-beta.2/MadDojo-0.2.0-beta.2-mac-arm64.dmg), manual macOS approval may be required |
+| Linux x64 | [AppImage](https://github.com/tinoargentino/MadDojo-community/releases/download/v0.2.0-beta.2/MadDojo-0.2.0-beta.2-linux-x86_64.AppImage) · [DEB](https://github.com/tinoargentino/MadDojo-community/releases/download/v0.2.0-beta.2/MadDojo-0.2.0-beta.2-linux-amd64.deb) |
 
-[Download the Windows/Linux desktop beta](https://github.com/tinoargentino/MadDojo-community/releases/tag/v0.2.0-beta.1).
+**[Download Mac beta.2 (.dmg)](https://github.com/tinoargentino/MadDojo-community/releases/download/v0.2.0-beta.2/MadDojo-0.2.0-beta.2-mac-arm64.dmg)** · [All desktop installers](https://github.com/tinoargentino/MadDojo-community/releases/tag/v0.2.0-beta.2)
 
 Open the Windows Setup installer or install the Linux package. Linux packages
 were verified on Ubuntu 22.04. Internal Mac builds target Apple Silicon on
 macOS 15 or newer.
 
-**The beta.1 Mac download is currently blocked by Gatekeeper with a “damaged”
-error. Do not treat it as ready for Mac installation.** Its build skipped code
-signing. The direct-executable CI checks passed but did not cover downloaded-app
-security assessment. Mac public releases now require valid Developer ID signing,
-notarization, a stapled ticket, and Gatekeeper approval. Corrected internal builds now pass code-signature validation and functional
-checks; no replacement trusted Mac download is advertised yet.
+**Mac beta.2 repairs the beta.1 invalid signature.** The final DMG passed strict
+code-signature validation and recording/save checks. Its complete public download
+was verified against the exact installer assessed on macOS.
 
-Windows and Linux installer, recording/save, and shutdown checks passed. The
-Windows preview may show an unverified-publisher warning. Physical microphone
-and audio-interface testing remains necessary before a stable release.
+This is an unnotarized testing build. Replace the old `MadDojo.app` in Applications
+with the copy from the beta.2 DMG. After first attempting to open it, macOS may
+require **System Settings → Privacy & Security → Open Anyway** for MadDojo.
+See [Apple's per-app approval instructions](https://support.apple.com/en-us/102445).
+It does not have automatic Gatekeeper approval or automatic Mac updates. A paid
+Apple membership is not needed for development or this testing route.
+
+Do not reuse the beta.1 Mac installer. Windows and Linux beta.2 installer checks
+also passed. Physical audio-device and cross-version update replacement testing
+remain necessary before a stable release.
 
 Stop any source copy before opening the desktop app with the same library.
 The earlier `v0.1.0` release is a source archive, **not** the desktop installer.
