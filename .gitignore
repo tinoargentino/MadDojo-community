@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
+data/
+test-results/
+node_modules/
+
+
+dist/
+
+# Local deployment notes and machine-specific service definition
+docs/arch-setup.md
+docs/local-verification.md
+systemd/vocal-dojo.service
+.DS_Store
+.env.*

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!--APP_BASE-->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3ed">
+  <meta name="description" content="Practice singing, bass, guitar, or drums with isolated guides, backing tracks, loops, and recording.">
+  <title>MadDojo</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' rx='20' fill='%23bc4b35'/%3E%3Cpath d='M20 35v10m10-24v38m10-46v54m10-46v38m10-24v10' stroke='%23fff8ec' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <script>
+    try {
+      if (localStorage.getItem('dojo.sidebarCollapsed') === 'true') document.documentElement.dataset.sidebarCollapsed = 'true';
+      const theme = localStorage.getItem('dojo.theme');
+      if (['paper', 'studio', 'midnight', 'slate'].includes(theme)) document.documentElement.dataset.theme = theme;
+    } catch {}
+  </script>
+  <link rel="stylesheet" href="styles.css?v=20261116-bar-loops">
+  <script type="module" src="app.js?v=20261116-bar-loops"></script>
+</head>
+<body>
+  <svg aria-hidden="true" class="sprite" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M5 5v14m14-14L8 12l11 7z"/></symbol>
+    <symbol id="i-loop" viewBox="0 0 24 24"><path d="m16 3 4 4-4 4M4 11V9a2 2 0 0 1 2-2h14M8 21l-4-4 4-4m12 0v2a2 2 0 0 1-2 2H4"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2m-7 9v3m-4 0h8"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zm4 4a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zm5 5 6 6m0-6-6 6"/></symbol>
+    <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="12" width="5" height="9" rx="2"/><rect x="16" y="12" width="5" height="9" rx="2"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zm0 1h18"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 15v5h16v-5"/></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M9 15h6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13M9 9l12-2"/><ellipse cx="6" cy="18" rx="3" ry="3"/><ellipse cx="18" cy="16" rx="3" ry="3"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 10v4m4-8v12m5-16v20m5-16v12m4-8v4"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="8" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></symbol>
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+  </svg>
+  <aside id="song-sidebar" class="sidebar" aria-label="Song library">
+    <a class="brand" href="./" aria-label="MadDojo home"><span class="brand-mark"><svg><use href="#i-wave"/></svg></span><span>Mad<span class="brand-light">Dojo</span></span></a>
+    <div class="library-heading"><h2>Your library</h2><span id="song-count" class="count">1</span></div>
+    <button class="import-button" id="import-button"><svg><use href="#i-plus"/></svg> Add songs</button>
+    <input type="file" id="file-input" accept="audio/*,.flac,.m4a,.aif,.aiff,.wma" multiple hidden>
+    <input class="search" id="song-search" type="search" placeholder="Search songs" aria-label="Search your songs">
+    <div class="song-list" id="song-list"><p class="muted">Opening your library…</p></div>
+  </aside>
+  <main>
+    <header class="song-header">
+      <div class="header-identity"><button id="sidebar-toggle" class="icon-button" aria-controls="song-sidebar" aria-expanded="true" aria-label="Hide song library" title="Hide song library"><svg><use href="#i-sidebar"/></svg></button><div class="song-heading"><h1 id="song-title">Loading library…</h1><p id="song-subtitle" class="muted"></p><span class="ready-badge" id="ready-badge">Opening library</span></div></div>
+      <div class="header-actions"><button id="commands-button" class="icon-button" aria-label="Commands (Cmd or Ctrl K)" title="Commands · ⌘/Ctrl K"><svg><use href="#i-search"/></svg></button>
+        <select id="theme-select" class="theme-select" aria-label="Color theme" title="Color theme"><option value="paper">Paper</option><option value="studio">Studio</option><option value="midnight">Midnight</option><option value="slate">Slate</option></select>
+        <div id="ardour-session-panel" class="session-actions" hidden><a id="ardour-download" class="text-button" href="#" download><svg><use href="#i-download"/></svg>Ardour session</a><button id="ardour-help" class="icon-button" aria-label="Ardour setup" title="Ardour setup">?</button></div>
+        <button class="icon-button" id="shortcuts-button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><svg><use href="#i-keyboard"/></svg></button><button class="icon-button" id="settings-button" aria-label="Audio and beat grid settings" title="Settings"><svg><use href="#i-settings"/></svg></button>
+      </div>
+    </header>
+    <section id="preparation-panel" class="preparation-panel" hidden aria-live="polite"><div><svg><use href="#i-wave"/></svg><div><h2 id="preparation-title">Preparing song</h2><p id="preparation-stage">Preparing your song…</p></div></div><progress id="preparation-progress" max="1" value="0"></progress><p class="tiny muted" id="preparation-detail">You can practice another song while this one prepares.</p><button id="retry-button" class="secondary" hidden>Try again</button></section>
+    <section id="browser-practice" hidden>
+    <div id="practice-workspace">
+      <div class="workspace-toolbar"><div class="tabs" role="tablist" aria-label="Practice view"><button id="practice-tab" role="tab" aria-selected="true" aria-controls="timeline-panel">Practice</button><button id="pitch-tab" role="tab" aria-selected="false" aria-controls="pitch-panel">Pitch lab</button></div><button class="text-button" id="download-button"><svg><use href="#i-download"/></svg><span>Export stems</span></button></div>
+      <section id="audio-load-panel" class="audio-load-panel panel" aria-label="Browser audio loading" hidden>
+        <div><h3 id="audio-load-title" aria-live="polite">Loading practice audio…</h3><p id="audio-load-detail">Loading guide and backing</p></div>
+        <progress id="audio-load-progress" max="1" aria-label="Practice audio download"></progress>
+        <button id="audio-load-retry" class="secondary" hidden>Retry audio</button>
+      </section>
+      <section class="timeline-panel panel" id="timeline-panel" aria-label="Song timeline">
+        <div class="timeline-top"><div><span id="position" class="position">00:00<span>.0</span></span><span class="time-separator">/</span><span id="duration" class="duration">00:40</span><span class="bar-count" id="bar-count">Bar 1 · beat 1</span></div><div class="zoom-tools"><button id="zoom-out" class="icon-button" aria-label="Zoom out">−</button><span id="zoom-label">Full song</span><button id="zoom-in" class="icon-button" aria-label="Zoom in">+</button><button id="zoom-fit" class="text-button">Fit</button></div></div>
+        <div class="overview-wrap"><canvas id="overview" aria-label="Song overview. Click to move the visible window." role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></canvas></div>
+        <div class="waveform-wrap"><canvas id="waveform" aria-label="Song waveform. Click to seek; drag to loop; use arrow keys to seek." role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="40" aria-valuenow="0"></canvas><div id="timeline-empty" hidden>No audio loaded</div></div>
+        <div class="timeline-foot"><span><span class="legend-dot vocals"></span><span class="guide-label">Guide vocal</span> <span class="legend-dot backing"></span>Backing</span></div>
+        <div class="transport"><div class="transport-left"><button id="restart" class="icon-button" aria-label="Return to loop start or song start (Enter)"><svg><use href="#i-back"/></svg></button><button id="play" class="play-button" aria-label="Play (Space)" disabled><svg><use href="#i-play"/></svg></button><button id="stop" class="icon-button" aria-label="Stop (Escape)"><svg><use href="#i-stop"/></svg></button><span class="transport-divider"></span><button id="record" class="record-button" aria-label="Record a take (R)"><span class="record-dot"></span><span id="record-label">Record a take</span></button></div><div class="transport-right"><span id="engine-status" class="engine-status">Audio ready on play</span></div></div>
+      </section>
+      <section id="pitch-panel" class="pitch-panel panel" hidden aria-label="Experimental pitch feedback">
+        <div class="section-heading"><div><h2>Pitch</h2><p class="muted"><span class="pitch-guide-label">Guide vocal</span> · <span class="pitch-voice-label">Your input</span></p></div><div class="pitch-numbers"><div><small>Guide</small><strong id="target-note">—</strong></div><div><small>Your input</small><strong id="live-note">—</strong></div><div><small>In tune</small><strong id="pitch-score">—</strong></div></div></div>
+        <canvas id="pitch-canvas" aria-label="Reference melody and your live pitch"></canvas>
+        <div class="pitch-bottom"><span id="pitch-hint">Enable your microphone to see your voice.</span></div>
+      </section>
+      <div class="practice-controls">
+        <section class="loop-panel panel"><div class="section-heading"><h2><svg><use href="#i-loop"/></svg> Loop</h2><button id="loop-toggle" class="toggle" aria-label="Enable loop (L)" aria-pressed="false"><span></span></button></div><div class="loop-boundaries"><label><span>In <kbd>[</kbd></span><input id="loop-a" type="text" value="00:00.00" aria-label="Loop start in minutes and seconds"></label><span class="loop-arrow">→</span><label><span>Out <kbd>]</kbd></span><input id="loop-b" type="text" value="00:10.00" aria-label="Loop end in minutes and seconds"></label></div><div class="loop-actions"><div class="segmented" role="group" aria-label="Loop length"><button data-bars="1">1 bar</button><button data-bars="2">2 bars</button><button data-bars="4">4 bars</button></div><label class="snap-label"><input id="snap" type="checkbox" checked> Snap to beat</label></div><div class="saved-loop-row"><button class="text-button" id="save-loop"><svg><use href="#i-plus"/></svg>Save phrase</button><select id="saved-loops" aria-label="Saved phrases"><option value="">Your saved phrases</option></select></div></section>
+        <section class="mixer-panel panel"><div class="section-heading"><h2><svg><use href="#i-volume"/></svg> Mixer</h2><kbd>V</kbd></div><div class="mixer-row"><button id="vocal-mute" class="stem-label" aria-label="Mute guide vocal (V)" aria-pressed="false"><span class="legend-dot vocals"></span><span class="guide-label">Guide vocal</span><svg><use href="#i-volume"/></svg></button><input id="vocal-volume" type="range" min="0" max="100" value="70" aria-label="Guide vocal volume"><output id="vocal-level">70%</output></div><div class="mixer-row"><span class="stem-label"><span class="legend-dot backing"></span>Backing</span><input id="backing-volume" type="range" min="0" max="100" value="85" aria-label="Backing track volume"><output id="backing-level">85%</output></div><div class="mixer-presets"><button data-mix="listen">Listen</button><button data-mix="guide" class="selected">Quiet guide</button><button data-mix="solo">Backing only</button></div></section>
+      </div>
+    <section class="recording-panel panel"><div class="mic-section"><div class="mic-icon"><svg><use href="#i-mic"/></svg></div><div><h2>Microphone</h2><p class="muted" id="mic-status"></p></div><div class="mic-actions"><div class="mic-meter" role="meter" aria-label="Microphone level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="mic-meter-fill"></span></div><button id="mic-toggle" class="secondary">Enable mic</button></div></div><div class="mic-details" id="mic-details" hidden><label>Input<select id="mic-select" aria-label="Microphone input"><option value="">Default microphone</option></select></label><label class="monitor-label"><input id="monitor" type="checkbox"> Hear myself <span class="tiny muted">Use headphones</span></label><button id="mic-disable" class="text-button">Disconnect mic</button></div><div class="takes-heading"><h3>Your takes <span id="take-count" class="count">0</span></h3></div><div id="take-list" class="take-list"><p class="takes-empty">No takes yet</p></div></section>
+      <footer class="app-footer"><span id="grid-summary"></span></footer>
+    </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="drop-overlay" class="drop-overlay" hidden><svg><use href="#i-music"/></svg><h2>Add songs</h2><p>Drop audio files here</p></div>
+  <dialog id="import-dialog" aria-labelledby="import-title"><div class="dialog-heading"><h2 id="import-title">Add songs</h2><button class="icon-button" data-close aria-label="Cancel import"><svg><use href="#i-close"/></svg></button></div><label>Practice mode<select id="import-mode"><option value="singer">Singer</option><option value="bass">Bass</option><option value="guitar">Guitar</option><option value="drum">Drums</option></select></label><p id="import-mode-note" class="muted" hidden>Guitar separation and pitch tracking are experimental.</p><button id="import-choose" class="primary">Choose audio files</button><div id="youtube-import"><label for="youtube-url">Or paste a YouTube link</label><div class="youtube-input-row"><input id="youtube-url" type="url" placeholder="https://youtube.com/watch?v=…" aria-label="YouTube video URL"><button id="youtube-submit" class="secondary">Add</button></div><p id="youtube-status" class="muted" role="status"></p></div></dialog>
+  <dialog id="command-dialog" aria-label="Commands">
+    <div class="command-search"><svg aria-hidden="true"><use href="#i-search"/></svg><input id="command-query" type="text" placeholder="Search songs and commands" aria-label="Search songs and commands" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="command-results" autocomplete="off"><button class="icon-button" data-close aria-label="Close commands"><svg><use href="#i-close"/></svg></button></div>
+    <div id="command-results" role="listbox" aria-label="Songs and commands"></div>
+  </dialog>
+  <dialog id="shortcuts-dialog"><div class="dialog-heading"><h2>Browser shortcuts</h2><button class="icon-button" data-close aria-label="Close shortcuts"><svg><use href="#i-close"/></svg></button></div><p class="muted">These shortcuts apply to browser practice. Ardour has its own shortcuts.</p><dl class="shortcuts"><div><dt>Commands / switch song</dt><dd><kbd>⌘/Ctrl K</kbd></dd></div><div><dt>Show / hide library</dt><dd><kbd>⌘/Ctrl B</kbd></dd></div><div><dt>Play / pause</dt><dd><kbd>Space</kbd></dd></div><div><dt>Restart phrase / song</dt><dd><kbd>Enter</kbd></dd></div><div><dt>Stop and return</dt><dd><kbd>Esc</kbd></dd></div><div><dt>Mute / restore the guide</dt><dd><kbd>V</kbd></dd></div><div><dt>Guide volume</dt><dd><kbd>−</kbd> <kbd>+</kbd></dd></div><div><dt>Start at current bar / loop off</dt><dd><kbd>L</kbd></dd></div><div><dt>Shorten / extend by one bar</dt><dd><kbd>,</kbd> <kbd>.</kbd></dd></div><div><dt>Shorten / extend by one beat</dt><dd><kbd>Shift ,</kbd> <kbd>Shift .</kbd></dd></div><div><dt>Mark start / end and loop</dt><dd><kbd>[</kbd> <kbd>]</kbd></dd></div><div><dt>Seek one beat / one bar</dt><dd><kbd>← →</kbd> / <kbd>Shift ← →</kbd></dd></div><div><dt>Record / finish take</dt><dd><kbd>R</kbd></dd></div><div><dt>Zoom in / out</dt><dd><kbd>Z</kbd> / <kbd>Shift Z</kbd></dd></div></dl><p class="tiny muted">Shortcuts pause while you type or adjust a control.</p></dialog>
+  <dialog id="settings-dialog"><div class="dialog-heading"><h2>Settings</h2><button class="icon-button" data-close aria-label="Close settings"><svg><use href="#i-close"/></svg></button></div><h3>Beat grid</h3><p class="muted">Detected beats are a starting point. Adjust the grid if the song feels off.</p><div class="settings-grid"><label>Tempo · BPM<input id="grid-bpm" type="number" min="30" max="300" step=".1" value="96"></label><label>Beats per bar<select id="grid-meter"><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option></select></label></div><label class="checkbox-row"><input id="grid-manual" type="checkbox"> Use a steady grid at this tempo</label><label>Grid / bar offset · seconds<input id="grid-offset" type="number" min="-1200" max="1200" step=".01" value="0"></label><button id="grid-downbeat" class="secondary">Make playhead the first beat</button><p class="tiny muted">Bar loops group beats using this meter. Automatic downbeat detection is not assumed.</p><section id="pitch-settings"><hr><h3>Pitch lab</h3><div class="settings-grid"><label>Sing an octave<select id="pitch-octave"><option value="-12">Lower</option><option value="0" selected>As recorded</option><option value="12">Higher</option></select></label><label>Input alignment · ms<input id="input-offset" type="number" min="-500" max="500" step="10" value="0"></label></div><p class="tiny muted">A positive alignment moves your pitch comparison earlier in the song. Headphones keep the backing out of your microphone. Pitch feedback does not assess breath support, tone, or vocal health.</p></section><hr><h3>Audio engine</h3><p id="audio-diagnostics" class="muted">Play a song to see the audio engine’s reported output latency.</p><p class="tiny muted">Wired headphones or an audio interface give the most immediate response. Bluetooth adds its own delay.</p><hr><section class="import-settings" aria-labelledby="import-folder-heading"><h3 id="import-folder-heading">Import folder</h3><div><code id="inbox-path"></code><button class="icon-button" id="copy-folder" aria-label="Copy import folder path" title="Copy folder path"><svg><use href="#i-copy"/></svg></button></div></section><button id="settings-save" class="primary">Save settings</button></dialog>
+  <dialog id="export-dialog"><div class="dialog-heading"><h2>Export stems</h2><button class="icon-button" data-close aria-label="Close export"><svg><use href="#i-close"/></svg></button></div><p class="muted">Download WAV files</p><div id="export-links" class="export-links"></div></dialog>
+  <dialog id="ardour-help-dialog">
+    <div class="dialog-heading"><h2>Open in Ardour</h2><button class="icon-button" data-close aria-label="Close Ardour guide"><svg><use href="#i-close"/></svg></button></div>
+    <ol class="ardour-steps"><li><strong>Download and unzip the session.</strong><p>Move the whole folder into Music on your Mac. Keep its audio files together.</p></li><li><strong>Open the .ardour file in Ardour.</strong><p>Use Ardour 9.8 or newer. Select CoreAudio and your microphone/headphone device.</p></li><li><strong>Loop a phrase.</strong><p>Space starts and stops. L plays the loop. The guide track has its own mute button and fader.</p></li><li><strong>Keep a take.</strong><p>Choose your input on Your input, arm that track, enable transport recording, and press Space. Save your session on the Mac.</p></li></ol>
+    <p class="muted">The bundle also includes beat-based loop actions, vocal controls, and a short setup guide. Pitch lab remains available here as an experiment.</p>
+    <a class="ardour-official" href="https://community.ardour.org/download" target="_blank" rel="noopener">Get Ardour for Mac ↗</a>
+  </dialog>
+</body>
+</html>

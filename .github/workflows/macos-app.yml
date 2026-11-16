@@ -1,0 +1,30 @@
+name: Build Mac app
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      UV_MANAGED_PYTHON: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
+        with:
+          version: '0.11.7'
+          enable-cache: false
+      - name: Install build prerequisites
+        run: brew install pkg-config
+      - name: Install Python
+        run: uv sync --locked --python 3.11
+      - name: Build and verify self-contained app
+        run: uv run python scripts/build_macos.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: MadDojo-macOS-AppleSilicon
+          path: dist/MadDojo-macOS-AppleSilicon.zip
+          compression-level: 0
+          retention-days: 14
