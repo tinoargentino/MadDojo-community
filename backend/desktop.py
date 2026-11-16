@@ -16,6 +16,9 @@ def main():
     parser.add_argument('--port', type=int, default=47671)
     parser.add_argument('--parent-stdin', action='store_true')
     args = parser.parse_args()
+    if os.environ.get('DOJO_DIAGNOSTICS'):
+        import faulthandler
+        faulthandler.dump_traceback_later(30)
     resources = Path(os.environ.get('DOJO_ENGINE_ROOT', Path(__file__).resolve().parents[2]))
     os.environ['PATH'] = str(resources / 'tools/bin') + os.pathsep + os.environ.get('PATH', '')
     os.environ['TORCH_HOME'] = str(resources / 'models')
@@ -43,6 +46,8 @@ def main():
                         temporary = args.ready_file.with_suffix('.tmp')
                         temporary.write_text(json.dumps({'url': url}), encoding='utf-8')
                         temporary.replace(args.ready_file)
+                        if os.environ.get('DOJO_DIAGNOSTICS'):
+                            faulthandler.cancel_dump_traceback_later()
                         return
             except (OSError, ValueError) as error:
                 if attempt in {10, 60, 180}:

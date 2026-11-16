@@ -21,7 +21,7 @@ with tempfile.TemporaryDirectory(prefix='maddojo-engine-check-') as tmp:
     token = secrets.token_hex(24)
     env = {**os.environ, 'DOJO_ENGINE_ROOT': str(engine), 'DOJO_DATA': str(tmp / 'Library'),
            'DOJO_INBOX': str(tmp / 'Inbox'), 'DOJO_CACHE': str(tmp / 'Cache'),
-           'DOJO_DESKTOP_TOKEN': token, 'PYTHONUTF8': '1', 'PYTHONDONTWRITEBYTECODE': '1',
+           'DOJO_DESKTOP_TOKEN': token, 'DOJO_DIAGNOSTICS': '1', 'PYTHONUTF8': '1', 'PYTHONDONTWRITEBYTECODE': '1',
            'PATH': str(engine / 'tools/bin') + os.pathsep + (os.environ.get('SYSTEMROOT', '') + '/System32' if os.name == 'nt' else '/usr/bin:/bin')}
     env.pop('PYTHONHOME', None)
     env.pop('PYTHONPATH', None)
