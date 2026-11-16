@@ -29,7 +29,7 @@ def main():
     def open_when_ready():
         for _ in range(120):
             try:
-                with urllib.request.urlopen(url + '/api/health', timeout=1) as response:
+                with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(url + '/api/health', timeout=1) as response:
                     if response.status == 200:
                         webbrowser.open(url)
                         return

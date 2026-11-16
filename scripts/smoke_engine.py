@@ -35,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix='maddojo-engine-check-') as tmp:
             else: raise RuntimeError('Engine startup timeout')
             base = json.loads((tmp / 'ready').read_text(encoding='utf-8'))['url']
             try:
-                urllib.request.urlopen(base + '/api/health')
+                urllib.request.build_opener(urllib.request.ProxyHandler({})).open(base + '/api/health')
                 raise AssertionError('Engine accepted an unauthenticated request')
             except urllib.error.HTTPError as error:
                 assert error.code == 403
@@ -43,7 +43,7 @@ with tempfile.TemporaryDirectory(prefix='maddojo-engine-check-') as tmp:
             def request(route, body=None, content_type=None):
                 headers = {'Authorization': 'Bearer ' + token}
                 if content_type: headers['Content-Type'] = content_type
-                with urllib.request.urlopen(urllib.request.Request(base + route, body, headers), timeout=30) as response:
+                with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(urllib.request.Request(base + route, body, headers), timeout=30) as response:
                     return response.read()
 
             stream = io.BytesIO()

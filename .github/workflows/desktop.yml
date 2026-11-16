@@ -39,14 +39,26 @@ jobs:
           msystem: MINGW64
           update: true
           install: mingw-w64-x86_64-gcc mingw-w64-x86_64-pkgconf make diffutils tar curl
+      - name: Restore compiled media tools
+        id: media-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: dist/engine/tools
+          key: desktop-media-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('packaging/desktop/build_ffmpeg.sh') }}
       - name: Compile bundled media tools (Unix)
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && steps.media-cache.outputs.cache-hit != 'true'
         shell: bash
         run: bash packaging/desktop/build_ffmpeg.sh "$PWD/dist/engine/tools" "$PWD/dist/ffmpeg-build"
       - name: Compile bundled media tools (Windows)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && steps.media-cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: bash packaging/desktop/build_ffmpeg.sh "$PWD/dist/engine/tools" "$PWD/dist/ffmpeg-build"
+      - name: Cache compiled media tools
+        if: steps.media-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: dist/engine/tools
+          key: ${{ steps.media-cache.outputs.cache-primary-key }}
       - name: Bundle portable Python, dependencies, and models
         run: uv run --no-project --python 3.11 python scripts/build_engine.py
       - name: Verify bundled separation and exports
@@ -63,6 +75,11 @@ jobs:
         run: node scripts/smoke_desktop.mjs
       - name: Build installers
         run: npm run desktop:dist
+      - name: Verify AppImage and update download (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          xvfb-run -a node scripts/smoke_desktop.mjs dist/desktop/*.AppImage
+          node scripts/smoke_update.mjs dist/desktop/*.AppImage
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: MadDojo-desktop-${{ runner.os }}-${{ runner.arch }}

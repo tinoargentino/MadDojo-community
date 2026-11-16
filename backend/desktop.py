@@ -31,20 +31,22 @@ def main():
     listener.listen(128)
     url = f'http://127.0.0.1:{listener.getsockname()[1]}'
     import uvicorn
-    server = uvicorn.Server(uvicorn.Config('backend.app:app', log_level='warning'))
+    server = uvicorn.Server(uvicorn.Config('backend.app:app', log_level='info'))
 
     def ready():
         headers = {'Authorization': 'Bearer ' + os.environ.get('DOJO_DESKTOP_TOKEN', '')}
-        for _ in range(240):
+        for attempt in range(240):
             try:
                 request = urllib.request.Request(url + '/api/health', headers=headers)
-                with urllib.request.urlopen(request, timeout=1) as response:
+                with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(request, timeout=1) as response:
                     if json.load(response).get('app') == 'MadDojo':
                         temporary = args.ready_file.with_suffix('.tmp')
                         temporary.write_text(json.dumps({'url': url}), encoding='utf-8')
                         temporary.replace(args.ready_file)
                         return
-            except (OSError, ValueError):
+            except (OSError, ValueError) as error:
+                if attempt in {10, 60, 180}:
+                    print(f'Engine readiness: {error}', file=sys.stderr, flush=True)
                 time.sleep(.5)
 
     def parent_lifetime():

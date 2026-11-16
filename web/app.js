@@ -586,7 +586,7 @@ function updateEngineUI() {
   const diag = engine.diagnostics();
   if (typeof diag === 'object') {
     $('engine-status').textContent = diag.estimatedMs ? `~${Math.round(diag.estimatedMs)} ms output` : `${(diag.sampleRate / 1000).toFixed(1)} kHz audio`;
-    $('audio-diagnostics').textContent = `${(diag.sampleRate / 1000).toFixed(1)} kHz · ${diag.estimatedMs ? `~${Math.round(diag.estimatedMs)} ms browser-reported output latency` : 'output latency not reported by this browser'} · ${diag.state}. This excludes microphone and network loading time.`;
+    $('audio-diagnostics').textContent = `${(diag.sampleRate / 1000).toFixed(1)} kHz · ${diag.estimatedMs ? `~${Math.round(diag.estimatedMs)} ms reported output latency` : 'output latency unavailable'} · ${diag.state}. This excludes microphone and network loading time.`;
   }
 }
 
@@ -767,7 +767,7 @@ async function enableMic(deviceId = '') {
 }
 
 async function connectMicrophone(deviceId = '') {
-  if (!navigator.mediaDevices?.getUserMedia) throw new Error('Microphone access needs the private HTTPS link. Open the Tailscale address in Chrome or Safari.');
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error('Microphone access is unavailable. Check microphone permissions and reopen MadDojo.');
   if (state.recording) await finishRecording();
   if (state.mic) disconnectMic();
   $('mic-toggle').disabled = true;
@@ -835,7 +835,7 @@ async function connectMicrophone(deviceId = '') {
     $('mic-toggle').textContent = 'Enable mic';
     $('mic-status').textContent = 'Your microphone is not connected yet.';
     const explanations = {
-      NotAllowedError: 'Microphone access was declined. Allow it in your browser’s site settings, then enable the mic again.',
+      NotAllowedError: 'Microphone access was declined. Allow microphone access in your app or browser settings, then enable the mic again.',
       NotFoundError: 'No microphone found. Connect an input device, then try again.',
       NotReadableError: 'The microphone is busy or unavailable. Check the selected input and try again.',
       OverconstrainedError: 'That microphone is no longer available. Reconnect using the default input.',

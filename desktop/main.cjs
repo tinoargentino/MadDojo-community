@@ -21,7 +21,7 @@ else {
 function fail(error) {
   if (stopping) return;
   console.error(error);
-  if (!smoke) dialog.showErrorBox('MadDojo could not start', `${error.message}\n\nUse Help → Open logs for details, or try reopening the app.`);
+  if (!smoke) dialog.showErrorBox('MadDojo could not start', `${error.message}\n\nLogs: ${app.getPath('logs')}\nTry reopening the app.`);
   process.exitCode = 1;
   app.quit();
 }
@@ -197,15 +197,37 @@ async function start() {
       if (smoke) {
         const result = await window.webContents.executeJavaScript(`fetch('api/health').then(r => r.json()).then(h => ({health:h.app, title:document.title, audio:!!window.AudioContext, media:!!navigator.mediaDevices, node:typeof require}))`);
         if (result.health !== 'MadDojo' || !result.audio || !result.media || result.node !== 'undefined') throw new Error('Desktop renderer smoke failed: '+JSON.stringify(result));
-        const recording = await window.webContents.executeJavaScript(`(async () => {
-          const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-          const recorder = new MediaRecorder(stream); const chunks = [];
-          const saved = new Promise(resolve => {recorder.ondataavailable = e => chunks.push(e.data); recorder.onstop = () => resolve(chunks.reduce((n,c) => n+c.size,0));});
-          recorder.start(); await new Promise(r => setTimeout(r,400)); recorder.stop();
-          const bytes = await saved; stream.getTracks().forEach(t => t.stop()); return bytes;
+        const clickRecord = async () => {
+          const point = await window.webContents.executeJavaScript(`(() => {const r=document.getElementById('record').getBoundingClientRect(); return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};})()`);
+          window.webContents.sendInputEvent({type:'mouseDown', ...point, button:'left', clickCount:1});
+          window.webContents.sendInputEvent({type:'mouseUp', ...point, button:'left', clickCount:1});
+        };
+        await window.webContents.executeJavaScript(`new Promise((resolve,reject) => {let n=0; const timer=setInterval(()=>{if(!document.getElementById('record').disabled){clearInterval(timer);resolve();}else if(++n>300){clearInterval(timer);reject(new Error('Audio did not become ready'));}},100);})`);
+        await clickRecord();
+        await window.webContents.executeJavaScript(`(async () => {
+          for(let i=0;!document.getElementById('record').classList.contains('recording');i++) {
+            if(i>200) throw new Error('Recording did not start: '+document.body.innerText.slice(-1200));
+            await new Promise(r=>setTimeout(r,100));
+          }
+          const leaving=new Event('beforeunload',{cancelable:true});window.dispatchEvent(leaving);
+          if(!leaving.defaultPrevented) throw new Error('Unfinished take did not prevent unload');
+          await new Promise(r=>setTimeout(r,1500));
         })()`);
-        if (!recording) throw new Error('Synthetic microphone recording failed');
-        console.log('DESKTOP_SMOKE_OK', JSON.stringify({...result, recordedBytes:recording}));
+        await clickRecord();
+        const recording = await window.webContents.executeJavaScript(`(async () => {
+          for(let i=0;i<300;i++) {
+            const takes=await fetch('api/songs/warmup/takes').then(r=>r.json());
+            if(takes.length && !document.getElementById('record').disabled) {
+              const bytes=await fetch('api/takes/'+takes[0].id+'/audio').then(r=>r.arrayBuffer());
+              if(new TextDecoder().decode(bytes.slice(0,4))!=='RIFF') throw new Error('Saved take is not WAV');
+              return bytes.byteLength;
+            }
+            await new Promise(r=>setTimeout(r,100));
+          }
+          throw new Error('Take did not save');
+        })()`);
+        if (!recording) throw new Error('Recording through the app failed');
+        console.log('DESKTOP_SMOKE_OK', JSON.stringify({...result, savedTakeBytes:recording}));
         app.quit();
       }
       return;
