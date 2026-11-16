@@ -73,3 +73,7 @@ module.exports = {
 module.exports.publish[0].channel = version.includes('-') ? version.split('-')[1].split('.')[0] : 'latest';
 module.exports.forceCodeSigning = !version.includes('-');
 if (!version.includes('-')) module.exports.mac.notarize = true;
+
+// A skipped signature leaves modified Electron bundles invalid on download.
+// Developer builds use an explicit ad-hoc identity; distribution is gated separately.
+if (process.platform === 'darwin' && !process.env.CSC_LINK) module.exports.mac.identity = '-';

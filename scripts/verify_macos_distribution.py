@@ -68,6 +68,9 @@ def main():
         else:
             app = args.app.resolve()
         results = assess(app)
+        if args.dmg:
+            results['artifact'] = args.dmg.name
+            results['artifact_sha256'] = digest
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
         print(json.dumps(results, indent=2))

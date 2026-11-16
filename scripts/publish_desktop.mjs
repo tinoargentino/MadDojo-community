@@ -18,6 +18,8 @@ const channel = metadata.version.includes('-') ? metadata.version.split('-')[1].
 for (const name of [channel+'.yml', channel+'-mac.yml', channel+'-linux.yml']) {
   if (!files.includes(name)) throw new Error('Missing updater metadata '+name);
 }
+const macAssessment = JSON.parse(await readFile(path.join(directory, 'mac-assessment.json'), 'utf8'));
+if (!macAssessment.distribution_ready || !files.includes(macAssessment.artifact)) throw new Error('Mac download has not passed Developer ID, notarization, and Gatekeeper checks');
 const temporary = await mkdtemp(path.join(tmpdir(), 'maddojo-release-'));
 const gh = args => execFileSync('gh', [...args, '--repo', repo], {stdio: 'inherit'});
 try {
@@ -25,12 +27,14 @@ try {
   for (const name of files) {
     const hash = createHash('sha256');
     for await (const bytes of createReadStream(path.join(directory,name))) hash.update(bytes);
-    sums.push(hash.digest('hex')+'  '+name);
+    const digest = hash.digest('hex');
+    if (name === macAssessment.artifact && digest !== macAssessment.artifact_sha256) throw new Error('Mac assessment belongs to a different installer');
+    sums.push(digest+'  '+name);
   }
   await writeFile(path.join(directory,'SHA256SUMS'), sums.join('\n')+'\n');
   const body = path.join(temporary, 'notes.md');
   const prerelease = metadata.version.includes('-');
-  await writeFile(body, `MadDojo ${metadata.version} desktop edition.\n\nIncludes Windows Setup, macOS DMG/ZIP, and Linux AppImage/DEB with bundled Python, CPU source separation, FFmpeg, and models. No terminal or separate dependencies are needed. Songs and recordings stay in the local library.\n\nHelp → Check for updates downloads a verified release and offers restart to install on supported editions.\n\n${prerelease ? 'Preview builds may be unsigned. macOS can require first-launch approval; Mac automatic installation requires a Developer ID signed release. Physical audio-device testing and cross-version replacement testing remain necessary before a production release.\n' : ''}`);
+  await writeFile(body, `MadDojo ${metadata.version} desktop edition.\n\nIncludes Windows Setup, macOS DMG/ZIP, and Linux AppImage/DEB with bundled Python, CPU source separation, FFmpeg, and models. No terminal or separate dependencies are needed. Songs and recordings stay in the local library.\n\nHelp → Check for updates downloads a verified release and offers restart to install on supported editions.\n\n${prerelease ? 'Windows previews may be unsigned. Mac downloads require Developer ID signing and notarization. Physical audio-device testing and cross-version replacement testing remain necessary before a production release.\n' : ''}`);
   // A draft keeps the update feed invisible until every binary and manifest is present.
   gh(['release','create',tag,'--draft','--target',process.env.GITHUB_SHA || 'main','--title','MadDojo '+metadata.version,'--notes-file',body,...(prerelease ? ['--prerelease'] : [])]);
   gh(['release','upload',tag,...files.map(name=>path.join(directory,name)),path.join(directory,'SHA256SUMS')]);
