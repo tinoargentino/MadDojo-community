@@ -11,7 +11,16 @@ establish that Finder can launch the downloaded app.
 The build now requests an explicit ad-hoc signature for internal builds without
 an Apple identity. Public releases require a matching final-DMG assessment with
 valid code signatures, Developer ID identity, notarization/stapled ticket, and
-Gatekeeper acceptance. Ad-hoc signing alone is not public distribution approval.
+Gatekeeper acceptance. The [corrected native Mac build](https://github.com/tinoargentino/MadDojo-community/actions/runs/43953919578)
+passes strict code-signature validation, real separation/exports, and recording
+from the final read-only DMG. The corrected signature binds the app's Info.plist
+and seals its resources. Default Gatekeeper approval remains false because the
+build has no Developer ID identity or notarization ticket. It is an internal
+ad-hoc test build, not a replacement trusted public installer.
+
+A paid Apple membership is not required to develop or test Mac apps. Ad-hoc
+signing fixed the packaging defect without one. Developer ID and notarization
+are separate requirements for the project's trusted public Mac releases.
 
 ## Current desktop implementation
 

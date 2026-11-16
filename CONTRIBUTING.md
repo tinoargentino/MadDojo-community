@@ -17,7 +17,9 @@ private songs, recordings, credentials, or your library database.
 
 ## Desktop builds
 
-Build on the target OS; the engine includes native Python extensions.
+Build on the target OS; the engine includes native Python extensions. A paid
+Apple membership is not needed for development or internal ad-hoc Mac builds;
+it is needed for Developer ID/notarization used by trusted public Mac releases.
 Use a uv-managed standalone Python (`UV_MANAGED_PYTHON=1`). The desktop workflow
 installs compiler dependencies and performs each build on a native runner.
 

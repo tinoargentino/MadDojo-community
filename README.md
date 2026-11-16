@@ -29,8 +29,8 @@ macOS 15 or newer.
 error. Do not treat it as ready for Mac installation.** Its build skipped code
 signing. The direct-executable CI checks passed but did not cover downloaded-app
 security assessment. Mac public releases now require valid Developer ID signing,
-notarization, a stapled ticket, and Gatekeeper approval. Corrected internal builds
-are being verified; no replacement Mac download is advertised yet.
+notarization, a stapled ticket, and Gatekeeper approval. Corrected internal builds now pass code-signature validation and functional
+checks; no replacement trusted Mac download is advertised yet.
 
 Windows and Linux installer, recording/save, and shutdown checks passed. The
 Windows preview may show an unverified-publisher warning. Physical microphone
