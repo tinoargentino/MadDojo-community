@@ -203,3 +203,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           UNNOTARIZED_MAC_PREVIEW: ${{ inputs.unnotarized_mac_preview && '1' || '0' }}
         run: node scripts/publish_desktop.mjs dist/release
+      - name: Verify public installer bytes and update metadata
+        run: node scripts/verify_public_release.mjs dist/release

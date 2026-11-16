@@ -70,3 +70,8 @@ together only after verification. Never regenerate updater metadata separately.
 The source archive workflow produces a contributor ZIP artifact only.
 
 Contributions use the MIT license. Dependencies keep their own licenses.
+
+An installed-app fix is delivered only after a newly versioned installer is
+published. A source push does not update downloaded or installed applications.
+The release verifier downloads the public Mac DMG and checks its complete bytes
+against the installer assessed on macOS, then checks the update-feed version.
