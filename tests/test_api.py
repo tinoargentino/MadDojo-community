@@ -220,3 +220,12 @@ def test_youtube_import_reports_downloader_failure(client, monkeypatch):
     response = client.post('/api/import/youtube', data={'url': 'https://youtu.be/BaW_jenozKc'})
     assert response.status_code == 400
     assert response.json()['detail'] == 'Video unavailable'
+
+
+def test_desktop_engine_requires_its_session(client, monkeypatch):
+    monkeypatch.setenv('DOJO_DESKTOP_TOKEN', 'test-desktop-secret')
+    assert client.get('/api/health').status_code == 403
+    assert client.get('/api/health', headers={'Authorization': 'Bearer wrong'}).status_code == 403
+    assert client.get('/api/health', headers={'Authorization': 'Bearer test-desktop-secret'}).status_code == 200
+    client.cookies.set('maddojo-session', 'test-desktop-secret')
+    assert client.get('/api/health').status_code == 200

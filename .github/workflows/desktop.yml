@@ -1,0 +1,76 @@
+name: Desktop installers
+on:
+  workflow_dispatch:
+  push:
+    tags: ['desktop-v*']
+permissions:
+  contents: read
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      UV_MANAGED_PYTHON: '1'
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
+        with:
+          version: '0.11.7'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Build tools (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config xvfb libgtk-3-0 libnss3 libasound2 libgbm1 libfuse2
+      - name: Build tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install pkg-config
+      - name: Build tools (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e
+        with:
+          msystem: MINGW64
+          update: true
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-pkgconf make diffutils tar curl
+      - name: Compile bundled media tools (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: bash packaging/macos/build_ffmpeg.sh "$PWD/dist/engine/tools" "$PWD/dist/ffmpeg-build"
+      - name: Compile bundled media tools (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: bash packaging/macos/build_ffmpeg.sh "$PWD/dist/engine/tools" "$PWD/dist/ffmpeg-build"
+      - name: Bundle portable Python, dependencies, and models
+        run: uv run --no-project --python 3.11 python scripts/build_engine.py
+      - run: npm ci
+      - run: npm test
+      - name: Package desktop application
+        run: npm run desktop:pack
+      - name: Smoke test desktop (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a node scripts/smoke_desktop.mjs
+      - name: Smoke test desktop (Windows and Mac)
+        if: runner.os != 'Linux'
+        run: node scripts/smoke_desktop.mjs
+      - name: Build installers
+        run: npm run desktop:dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: MadDojo-desktop-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            dist/desktop/*.exe
+            dist/desktop/*.dmg
+            dist/desktop/*.zip
+            dist/desktop/*.AppImage
+            dist/desktop/*.deb
+            dist/desktop/*.yml
+            dist/desktop/*.blockmap
+          compression-level: 0
+          retention-days: 14

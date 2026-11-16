@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -42,6 +43,8 @@ def download_audio(url: str, folder: Path):
     from yt_dlp import YoutubeDL
     url = youtube_url(url)
     runtimes = {name: {} for name in ("deno", "node") if shutil.which(name)}
+    if os.environ.get("DOJO_NODE_PATH"):
+        runtimes["node"] = {"path": os.environ["DOJO_NODE_PATH"]}
     if not runtimes:
         raise ValueError("Install Deno or Node.js to import YouTube audio")
     options = {

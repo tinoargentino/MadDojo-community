@@ -4,6 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager
 import json
 import html
+import secrets
 import logging
 import math
 import os
@@ -157,6 +158,12 @@ app = FastAPI(title="MadDojo", lifespan=lifespan, docs_url=None, redoc_url=None)
 
 @app.middleware("http")
 async def local_app_guard(request: Request, call_next):
+    desktop_token = os.environ.get("DOJO_DESKTOP_TOKEN")
+    if desktop_token:
+        supplied = request.cookies.get("maddojo-session", "")
+        authorization = request.headers.get("authorization", "")
+        if not secrets.compare_digest(supplied, desktop_token) and not secrets.compare_digest(authorization, "Bearer " + desktop_token):
+            return JSONResponse({"detail": "Open MadDojo from the desktop app"}, status_code=403)
     host = request.headers.get("host", "").split(":")[0]
     if host not in ({"localhost", "127.0.0.1", "testserver"} | {h.strip() for h in os.environ.get("DOJO_ALLOWED_HOSTS", "").split(",") if h.strip()}):
         return JSONResponse({"detail": "Unknown app host"}, status_code=403)
@@ -400,7 +407,7 @@ def index(request: Request):
     # Tailscale Serve strips /dojo. A base also makes the slashless URL work.
     base = os.environ.get("DOJO_BASE_PATH", "/") if request.headers.get("host", "").split(":")[0] not in {"localhost", "127.0.0.1", "testserver"} else "/"
     base = html.escape(base, quote=True)
-    page = (lib.ROOT / "web/index.html").read_text()
+    page = (lib.ROOT / "web/index.html").read_text(encoding="utf-8")
     return HTMLResponse(page.replace("<!--APP_BASE-->", f'<base href="{base}">'),
                         headers={"Cache-Control": "no-cache"})
 
