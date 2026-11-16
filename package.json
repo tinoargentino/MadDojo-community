@@ -12,8 +12,8 @@
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "desktop": "electron .",
-    "desktop:pack": "electron-builder --dir --publish never",
-    "desktop:dist": "electron-builder --publish never"
+    "desktop:pack": "electron-builder --config electron-builder.cjs --dir --publish never",
+    "desktop:dist": "electron-builder --config electron-builder.cjs --publish never"
   },
   "dependencies": {
     "electron-updater": "6.8.11"
@@ -21,77 +21,6 @@
   "devDependencies": {
     "electron": "45.3.3",
     "electron-builder": "26.18.0"
-  },
-  "build": {
-    "appId": "com.maddojo.desktop",
-    "productName": "MadDojo",
-    "directories": {
-      "output": "dist/desktop"
-    },
-    "files": [
-      "desktop/**/*",
-      "package.json",
-      "LICENSE"
-    ],
-    "extraResources": [
-      {
-        "from": "dist/engine",
-        "to": "engine"
-      }
-    ],
-    "asar": true,
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "tinoargentino",
-        "repo": "MadDojo-community",
-        "releaseType": "draft"
-      }
-    ],
-    "artifactName": "MadDojo-${version}-${os}-${arch}.${ext}",
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "category": "public.app-category.music",
-      "hardenedRuntime": true,
-      "entitlements": "packaging/desktop/entitlements.mac.plist",
-      "entitlementsInherit": "packaging/desktop/entitlements.mac.plist",
-      "extendInfo": {
-        "NSMicrophoneUsageDescription": "Record practice takes and show live pitch feedback."
-      }
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "deleteAppDataOnUninstall": false
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "AudioVideo",
-      "maintainer": "MadDojo contributors",
-      "desktop": {
-        "entry": {
-          "StartupWMClass": "MadDojo"
-        }
-      },
-      "syncDesktopName": true
-    },
-    "icon": "packaging/desktop/icon.png",
-    "deb": {
-      "compression": "gz"
-    }
   },
   "desktopName": "maddojo.desktop"
 }

@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const {isLocalURL, isExternalURL, runtimePaths} = require('./policy.cjs');
 const {autoUpdater} = require('electron-updater');
 let window, child, origin, stopping = false, stopPromise, startupTimer;
-let updateAvailable = false, downloaded = false;
+let updateAvailable = false, downloaded = false, updateDownloading = false, installOnQuit = false;
 const token = crypto.randomBytes(32).toString('hex');
 const smoke = process.argv.includes('--smoke-test');
 if (smoke) app.commandLine.appendSwitch('use-fake-device-for-media-stream');
@@ -43,12 +43,17 @@ async function stopEngine() {
   })();
   return stopPromise;
 }
+function finishQuit() {
+  if (stopping) return;
+  stopping = true;
+  stopEngine().finally(() => { if (installOnQuit) autoUpdater.quitAndInstall(); else app.quit(); });
+}
 app.on('before-quit', event => {
   if (stopping) return;
-  event.preventDefault(); stopping = true;
-  stopEngine().finally(() => app.quit());
+  event.preventDefault();
+  if (window && !window.isDestroyed()) window.close(); else finishQuit();
 });
-app.on('window-all-closed', () => app.quit());
+app.on('window-all-closed', finishQuit);
 function supportsUpdates() {
   if (!app.isPackaged) return false;
   if (process.platform === 'linux') return Boolean(process.env.APPIMAGE);
@@ -59,14 +64,14 @@ function supportsUpdates() {
   return true;
 }
 function updateMenu() {
-  const updateLabel = downloaded ? 'Restart to install update…' : updateAvailable ? 'Download update…' : 'Check for updates…';
+  const updateLabel = updateDownloading ? 'Downloading update…' : downloaded ? 'Restart to install update…' : updateAvailable ? 'Download update…' : 'Check for updates…';
   const template = [
     ...(process.platform === 'darwin' ? [{label: app.name, submenu: [{role: 'about'}, {type: 'separator'}, {role: 'quit'}]}] : []),
     {label: 'File', submenu: [{label: 'Open library folder', click: () => shell.openPath(libraryPath())}, {type: 'separator'}, {role: 'quit'}]},
     {label: 'Edit', submenu: [{role: 'undo'}, {role: 'redo'}, {type: 'separator'}, {role: 'cut'}, {role: 'copy'}, {role: 'paste'}, {role: 'selectAll'}]},
     {label: 'View', submenu: [{role: 'resetZoom'}, {role: 'zoomIn'}, {role: 'zoomOut'}, {role: 'togglefullscreen'}]},
     {label: 'Help', submenu: [
-      {label: updateLabel, click: () => checkUpdate()},
+      {label: updateLabel, enabled: !updateDownloading, click: () => checkUpdate()},
       {label: 'Open logs', click: () => shell.openPath(app.getPath('logs'))},
       {label: 'Report a problem', click: () => shell.openExternal('https://github.com/tinoargentino/MadDojo-community/issues')},
       {label: 'About MadDojo', click: () => dialog.showMessageBox(window, {message: `MadDojo ${app.getVersion()}`, detail: 'Music practice on your computer. MIT licensed.\nSongs and recordings stay in your local library.'})},
@@ -90,11 +95,15 @@ async function checkUpdate() {
   }
   if (downloaded) {
     const {response} = await dialog.showMessageBox(window, {message: 'Install update and restart?', detail: 'Finish and save your current take before restarting.', buttons: ['Cancel', 'Restart'], defaultId: 0, cancelId: 0});
-    if (response === 1) { stopping = true; await stopEngine(); autoUpdater.quitAndInstall(); }
+    if (response === 1) { installOnQuit = true; window.close(); }
     return;
   }
   try {
-    if (updateAvailable) await autoUpdater.downloadUpdate();
+    if (updateAvailable) {
+      updateDownloading = true; updateMenu();
+      try { await autoUpdater.downloadUpdate(); }
+      finally { updateDownloading = false; window?.setProgressBar(-1); updateMenu(); }
+    }
     else {
       const result = await autoUpdater.checkForUpdates();
       if (!result || !updateAvailable) await dialog.showMessageBox(window, {message: 'MadDojo is up to date'});
@@ -102,6 +111,8 @@ async function checkUpdate() {
   } catch (error) { await dialog.showMessageBox(window, {type: 'error', message: 'Could not check or download updates', detail: `${error.message}\nYou can retry from Help.`}); }
 }
 function configureUpdates() {
+  autoUpdater.logger = {info: logMessage, warn: logMessage, error: logMessage, debug: logMessage};
+  autoUpdater.on('download-progress', progress => window?.setProgressBar(progress.percent / 100));
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.on('error', error => console.error('Updater:', error.message));
@@ -114,9 +125,19 @@ function configureUpdates() {
     setTimeout(() => autoUpdater.checkForUpdates().catch(error => console.error(error.message)), 10000).unref();
   }
 }
+function logMessage(message) {
+  fs.appendFile(path.join(app.getPath('logs'), 'desktop.log'), `${new Date().toISOString()} ${String(message)}\n`, () => {});
+}
 async function start() {
   app.setAppLogsPath(path.join(app.getPath('userData'), 'logs'));
   fs.mkdirSync(app.getPath('logs'), {recursive: true});
+  for (const name of ['engine.log', 'desktop.log']) {
+    const file = path.join(app.getPath('logs'), name);
+    if (fs.existsSync(file) && fs.statSync(file).size > 5 * 1024 * 1024) {
+      fs.rmSync(file+'.previous', {force: true}); fs.renameSync(file, file+'.previous');
+    }
+  }
+  logMessage(`MadDojo ${app.getVersion()} on ${process.platform}/${process.arch}`);
   const log = fs.openSync(path.join(app.getPath('logs'), 'engine.log'), 'a');
   const root = app.isPackaged ? path.join(process.resourcesPath, 'engine') : path.resolve(__dirname, '../dist/engine');
   const runtime = runtimePaths(root);
@@ -136,11 +157,9 @@ async function start() {
   child.on('exit', (code) => { engineExited = true; if (!stopping) fail(new Error(`The practice engine stopped (${code}). See engine.log.`)); });
   updateMenu();
   window = new BrowserWindow({width: 1360, height: 900, minWidth: 820, minHeight: 600, show: false, backgroundColor: '#f4f1e8', title: 'MadDojo', webPreferences: {nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true, spellcheck: false}});
-  window.on('close', event => {
-    if (!stopping && !smoke) {
-      const response = dialog.showMessageBoxSync(window, {message: 'Quit MadDojo?', detail: 'Finish and save any recording before quitting.', buttons: ['Keep practicing', 'Quit'], defaultId: 0, cancelId: 0});
-      if (response !== 1) event.preventDefault();
-    }
+  window.webContents.on('will-prevent-unload', event => {
+    const response = dialog.showMessageBoxSync(window, {message: 'You have an unfinished recording', detail: 'Stay in MadDojo to finish saving or download your take. Quitting discards unsaved audio.', buttons: ['Keep practicing', 'Discard and quit'], defaultId: 0, cancelId: 0});
+    if (response === 1) event.preventDefault(); else installOnQuit = false;
   });
   window.webContents.setWindowOpenHandler(({url}) => {
     if (isLocalURL(url, origin)) window.webContents.downloadURL(url);
