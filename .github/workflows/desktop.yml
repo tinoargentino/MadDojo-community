@@ -7,6 +7,10 @@ on:
         type: choice
         options: [all, windows, macos, linux]
         default: all
+      unnotarized_mac_preview:
+        description: Allow a validly signed beta needing manual macOS security approval
+        type: boolean
+        default: false
       publish:
         description: Publish the verified installer set to GitHub Releases
         type: boolean
@@ -120,7 +124,7 @@ jobs:
       - name: Verify Mac signature and downloaded-app policy
         if: runner.os == 'macOS'
         env:
-          REQUIRE_GATEKEEPER: ${{ inputs.publish || startsWith(github.ref, 'refs/tags/v') }}
+          REQUIRE_GATEKEEPER: ${{ (inputs.publish || startsWith(github.ref, 'refs/tags/v')) && !inputs.unnotarized_mac_preview }}
         shell: bash
         run: |
           policy=()
@@ -197,4 +201,5 @@ jobs:
       - name: Publish complete installer set and update feed
         env:
           GH_TOKEN: ${{ github.token }}
+          UNNOTARIZED_MAC_PREVIEW: ${{ inputs.unnotarized_mac_preview && '1' || '0' }}
         run: node scripts/publish_desktop.mjs dist/release

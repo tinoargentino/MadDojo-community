@@ -3,7 +3,7 @@
 import {createRequire} from 'node:module';
 import {createServer} from 'node:http';
 import {createReadStream} from 'node:fs';
-import {copyFile, mkdtemp, rm, stat, writeFile} from 'node:fs/promises';
+import {copyFile, mkdtemp, rm, stat, writeFile, readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -13,6 +13,7 @@ const {AppImageUpdater} = require('electron-updater');
 const {NodeHttpExecutor} = require('builder-util');
 const {ElectronHttpExecutor} = require('electron-updater/out/electronHttpExecutor');
 const artifact = path.resolve(process.argv[2]);
+const targetVersion = JSON.parse(await readFile('package.json', 'utf8')).version;
 const temporary = await mkdtemp(path.join(tmpdir(), 'maddojo-update-'));
 const previous = process.env.APPIMAGE;
 const hash = async file => {const h = createHash('sha512'); for await (const bytes of createReadStream(file)) h.update(bytes); return h.digest('base64');};
@@ -20,7 +21,7 @@ const digest = await hash(artifact), size = (await stat(artifact)).size;
 let corrupt = true;
 const server = createServer((request, response) => {
   if (request.url.startsWith('/release.AppImage')) {response.setHeader('Content-Length', size); createReadStream(artifact).pipe(response);}
-  else {response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({version: '0.2.0-beta.1', files: [{url:'release.AppImage', sha512:corrupt ? Buffer.alloc(64).toString('base64') : digest, size}], path:'release.AppImage', sha512:corrupt ? Buffer.alloc(64).toString('base64') : digest, releaseDate:new Date().toISOString()}));}
+  else {response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({version: targetVersion, files: [{url:'release.AppImage', sha512:corrupt ? Buffer.alloc(64).toString('base64') : digest, size}], path:'release.AppImage', sha512:corrupt ? Buffer.alloc(64).toString('base64') : digest, releaseDate:new Date().toISOString()}));}
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
@@ -46,7 +47,7 @@ try {
   corrupt = false;
   const good = updater();
   const result = await good.checkForUpdates();
-  assert.equal(result.updateInfo.version, '0.2.0-beta.1');
+  assert.equal(result.updateInfo.version, targetVersion);
   const [downloaded] = await good.downloadUpdate();
   assert.equal(await hash(downloaded), digest);
   assert.equal(await hash(process.env.APPIMAGE), digest);
