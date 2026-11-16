@@ -62,6 +62,22 @@ async def watch_inbox():
         await asyncio.sleep(3)
 
 
+async def stop_worker(worker):
+    if worker.returncode is not None:
+        return
+    if os.name == "nt":
+        # Terminate the worker's media-tool descendants as well as Python.
+        await asyncio.to_thread(subprocess.run, ["taskkill", "/PID", str(worker.pid), "/T", "/F"],
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                creationflags=subprocess.CREATE_NO_WINDOW)
+    else:
+        try:
+            os.killpg(worker.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+    await worker.wait()
+
+
 async def process_queue():
     global process
     while True:
@@ -76,7 +92,8 @@ async def process_queue():
             with (folder / "preparation.log").open("w") as logfile:
                 process = await asyncio.create_subprocess_exec(
                     sys.executable, "-m", "backend.process", str(folder), song["mode"],
-                    cwd=lib.ROOT, stdout=logfile, stderr=logfile, start_new_session=os.name != "nt",
+                    cwd=lib.ROOT, stdin=asyncio.subprocess.DEVNULL, stdout=logfile, stderr=logfile, start_new_session=os.name != "nt",
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
                     env={**os.environ, "NUMBA_NUM_THREADS": "4", "OMP_NUM_THREADS": "8"})
                 while process.returncode is None:
                     try:
@@ -96,11 +113,7 @@ async def process_queue():
                             duration=analysis["duration"], bpm=analysis["bpm"], error=None)
         except asyncio.CancelledError:
             if process and process.returncode is None:
-                if os.name == "nt":
-                    process.terminate()
-                else:
-                    os.killpg(process.pid, signal.SIGTERM)
-                await process.wait()
+                await stop_worker(process)
             raise
         except Exception as exc:
             log.exception("Song preparation failed")
@@ -252,15 +265,14 @@ async def import_youtube(url: str = Form(...), mode: str = Form("singer")):
         folder = Path(temporary)
         worker = await asyncio.create_subprocess_exec(
             sys.executable, "-m", "backend.youtube", url, str(folder),
-            cwd=lib.ROOT, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE,
+            cwd=lib.ROOT, stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
             start_new_session=os.name != "nt")
         try:
             _, errors = await asyncio.wait_for(worker.communicate(), timeout=300)
         except (asyncio.TimeoutError, asyncio.CancelledError) as exc:
             if worker.returncode is None:
-                if os.name == "nt": worker.terminate()
-                else: os.killpg(worker.pid, signal.SIGTERM)
-                await worker.wait()
+                await stop_worker(worker)
             if isinstance(exc, asyncio.CancelledError): raise
             raise HTTPException(504, "YouTube download timed out; try again") from exc
         if worker.returncode:
