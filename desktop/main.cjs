@@ -115,6 +115,7 @@ function configureUpdates() {
   }
 }
 async function start() {
+  app.setAppLogsPath(path.join(app.getPath('userData'), 'logs'));
   fs.mkdirSync(app.getPath('logs'), {recursive: true});
   const log = fs.openSync(path.join(app.getPath('logs'), 'engine.log'), 'a');
   const root = app.isPackaged ? path.join(process.resourcesPath, 'engine') : path.resolve(__dirname, '../dist/engine');

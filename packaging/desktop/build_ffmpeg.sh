@@ -2,6 +2,8 @@
 set -euo pipefail
 DEST="$1"
 WORK="$2"
+EXTRA_LDFLAGS=""
+case "$(uname -s)" in MINGW*|MSYS*) EXTRA_LDFLAGS="-static" ;; esac
 mkdir -p "$DEST" "$WORK"
 cd "$WORK"
 sha256check() {
@@ -29,7 +31,7 @@ PKG_CONFIG_PATH="$WORK/static/lib/pkgconfig" ./configure \
   --enable-parser=aac,mpegaudio,flac,opus,vorbis \
   --enable-encoder=pcm_s16le,pcm_f32le,libmp3lame \
   --enable-muxer=wav,mp3 --enable-filter=aresample,volume,anull,aformat \
-  --enable-libmp3lame --extra-cflags="-I$WORK/static/include" --extra-ldflags="-L$WORK/static/lib"
+  --enable-libmp3lame --extra-cflags="-I$WORK/static/include" --extra-ldflags="-L$WORK/static/lib $EXTRA_LDFLAGS"
 make -j3
 make install
 mkdir -p "$DEST/third-party-sources"

@@ -1,5 +1,5 @@
 import {spawn} from 'node:child_process';
-import {mkdtemp, rm} from 'node:fs/promises';
+import {mkdtemp, rm, readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 const root = path.resolve('dist/desktop');
@@ -12,6 +12,9 @@ child.stderr.on('data', data => process.stderr.write(data));
 const timeout = setTimeout(() => {child.kill('SIGKILL');}, 150000);
 try {
   const code = await new Promise((resolve, reject) => {child.on('error', reject); child.on('exit', resolve);});
-  if (code !== 0 || !output.includes('DESKTOP_SMOKE_OK')) throw new Error(`Desktop smoke failed, exit ${code}`);
+  if (code !== 0 || !output.includes('DESKTOP_SMOKE_OK')) {
+    try { console.error(await readFile(path.join(temporary, 'profile/logs/engine.log'), 'utf8')); } catch {}
+    throw new Error(`Desktop smoke failed, exit ${code}`);
+  }
   console.log('Packaged desktop startup, authenticated UI, audio APIs, isolation, and shutdown passed');
 } finally {clearTimeout(timeout); await rm(temporary, {recursive: true, force: true});}
