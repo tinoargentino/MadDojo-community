@@ -39,20 +39,24 @@ never be written into the installed application's resources.
 
 ## Releases and updates
 
-The Desktop installers workflow creates CI artifacts after packaged smoke tests.
-It does not automatically publish unverified artifacts. Before a desktop
+The Desktop installers workflow creates CI artifacts after packaged smoke and
+installer checks. With its Publish option enabled, or on a matching `v*` tag,
+it publishes a complete release only after all three native jobs succeed. Update
+metadata is uploaded alongside its binaries while the release is still a draft. Before a desktop
 release, verify import/separation/playback, physical microphone recording,
 file saving, close/relaunch, installation and replacement on each platform.
 
-For signed production Mac builds, configure `CSC_LINK`, `CSC_KEY_PASSWORD`, and
-Apple notarization credentials in the build environment. Windows signing also
-needs a configured certificate or signing service. No credentials belong in
+For signed production Mac builds, configure repository secrets `MAC_CSC_LINK`,
+`MAC_CSC_KEY_PASSWORD`, `APPLE_API_KEY_BASE64`, `APPLE_API_KEY_ID`, and
+`APPLE_API_ISSUER`. Windows uses `WIN_CSC_LINK` and `WIN_CSC_KEY_PASSWORD`.
+The Mac API key is decoded to a temporary runner file. Stable versions require
+code signing; stable Mac versions also require notarization. No credentials belong in
 source. Unsigned preview builds must be labeled as such. Mac auto-update only
 works for a properly signed app.
 
 Keep package.json's version, release tag, binaries, blockmaps and update metadata
 consistent. Publish the native installers and `latest*.yml` from the same build
 together only after verification. Never regenerate updater metadata separately.
-The source release workflow is independent of desktop releases.
+The source archive workflow produces a contributor ZIP artifact only.
 
 Contributions use the MIT license. Dependencies keep their own licenses.

@@ -86,10 +86,16 @@ jobs:
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-        run: npm run desktop:dist
+        shell: bash
+        run: |
+          if [ -n "$APPLE_API_KEY_BASE64" ]; then
+            node -e "require('fs').writeFileSync(process.env.RUNNER_TEMP+'/notarization.p8', Buffer.from(process.env.APPLE_API_KEY_BASE64, 'base64'))"
+            export APPLE_API_KEY="$RUNNER_TEMP/notarization.p8"
+          fi
+          npm run desktop:dist
       - name: Build installers (Windows)
         if: runner.os == 'Windows'
         env:

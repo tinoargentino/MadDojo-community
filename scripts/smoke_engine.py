@@ -67,6 +67,8 @@ with tempfile.TemporaryDirectory(prefix='maddojo-engine-check-') as tmp:
             assert request(f'/api/songs/{song_id}/ardour')[:2] == b'PK'
             print('Bundled engine: authenticated startup, real guitar separation, WAV, MP3, and Ardour export passed')
         except Exception:
+            for report in (tmp / 'Library/songs').glob('*/preparation.log'):
+                print(report.read_text(encoding='utf-8', errors='replace')[-8000:], file=sys.stderr)
             print((tmp / 'engine.log').read_text(encoding='utf-8', errors='replace'), file=sys.stderr)
             raise
         finally:

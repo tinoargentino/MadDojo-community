@@ -5,7 +5,7 @@
 Verified locally on Linux with the bundled portable Python CPU engine and
 sandboxed Electron 45.3.3 (no sandbox-disabling flags):
 
-- 49 Python API/processing/export checks and 17 JavaScript/audio/desktop-policy checks pass.
+- 50 Python API/processing/export/lifecycle checks and 17 JavaScript/audio/desktop-policy checks pass.
 - A real packaged window starts its own engine and loads the authenticated UI.
 - The renderer exposes Web Audio and media capture, with no Node `require`.
 - A synthetic microphone stream records successfully inside the packaged app.
@@ -26,7 +26,9 @@ desktop installer verification is separate and must pass before publication.
 - Native Windows and macOS packaged launch/record/shutdown verification.
 - Physical microphone, headphones, input/output selection, and measured latency.
 - Human installer/uninstaller checks on clean machines.
-- Update feed download, hash verification, replacement, and relaunch across versions.
+- Replacement and relaunch across versions. A local release-feed integration check
+  already verifies discovery, download, hash validation, corrupted-file rejection,
+  and preservation of the installed binary; it uses a simulated prior version.
 - Developer ID signing and notarization for seamless Mac distribution and updates;
   Windows signing for publisher identity and installation reputation.
 
