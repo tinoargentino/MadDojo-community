@@ -1,8 +1,13 @@
 name: Desktop installers
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the verified installer set to GitHub Releases
+        type: boolean
+        default: false
   push:
-    tags: ['desktop-v*']
+    tags: ['v*']
 permissions:
   contents: read
 jobs:
@@ -73,8 +78,52 @@ jobs:
       - name: Smoke test desktop (Windows and Mac)
         if: runner.os != 'Linux'
         run: node scripts/smoke_desktop.mjs
-      - name: Build installers
+      - name: Build installers (Linux)
+        if: runner.os == 'Linux'
         run: npm run desktop:dist
+      - name: Build installers (macOS)
+        if: runner.os == 'macOS'
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: npm run desktop:dist
+      - name: Build installers (Windows)
+        if: runner.os == 'Windows'
+        env:
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: npm run desktop:dist
+      - name: Verify Windows installation and removal
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installer = (Get-ChildItem dist/desktop/*.exe | Select-Object -First 1).FullName
+          $installDirectory = Join-Path $env:RUNNER_TEMP 'MadDojoInstalled'
+          $process = Start-Process -FilePath $installer -ArgumentList @('/S', "/D=$installDirectory") -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'NSIS installation failed' }
+          node scripts/smoke_desktop.mjs "$installDirectory/MadDojo.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Installed app smoke failed' }
+          $uninstaller = Join-Path $installDirectory 'Uninstall MadDojo.exe'
+          $process = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'NSIS removal failed' }
+      - name: Verify read-only Mac disk image
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          volume="$RUNNER_TEMP/MadDojoImage"
+          mkdir -p "$volume"
+          hdiutil attach dist/desktop/*.dmg -readonly -nobrowse -mountpoint "$volume"
+          trap 'hdiutil detach "$volume"' EXIT
+          node scripts/smoke_desktop.mjs "$volume/MadDojo.app/Contents/MacOS/MadDojo"
+      - name: Verify Debian installation and removal
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y ./dist/desktop/*.deb
+          xvfb-run -a node scripts/smoke_desktop.mjs /opt/MadDojo/maddojo
+          sudo dpkg -r maddojo
       - name: Verify AppImage and update download (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -91,5 +140,27 @@ jobs:
             dist/desktop/*.deb
             dist/desktop/*.yml
             dist/desktop/*.blockmap
+            !dist/desktop/builder-debug.yml
           compression-level: 0
           retention-days: 14
+
+  release:
+    needs: desktop
+    if: inputs.publish || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: MadDojo-desktop-*
+          path: dist/release
+          merge-multiple: true
+      - name: Publish complete installer set and update feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/publish_desktop.mjs dist/release

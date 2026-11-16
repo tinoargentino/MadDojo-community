@@ -34,7 +34,10 @@ def main():
     listener.listen(128)
     url = f'http://127.0.0.1:{listener.getsockname()[1]}'
     import uvicorn
-    server = uvicorn.Server(uvicorn.Config('backend.app:app', log_level='info'))
+    # Load native numerical libraries before the control-pipe reader starts.
+    # Windows NumPy can deadlock otherwise: numpy/numpy#24290.
+    from .app import app as practice_app
+    server = uvicorn.Server(uvicorn.Config(practice_app, log_level='info'))
 
     def ready():
         headers = {'Authorization': 'Bearer ' + os.environ.get('DOJO_DESKTOP_TOKEN', '')}
