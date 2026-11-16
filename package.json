@@ -85,8 +85,13 @@
         "entry": {
           "StartupWMClass": "MadDojo"
         }
-      }
+      },
+      "syncDesktopName": true
     },
-    "icon": "packaging/desktop/icon.png"
-  }
+    "icon": "packaging/desktop/icon.png",
+    "deb": {
+      "compression": "gz"
+    }
+  },
+  "desktopName": "maddojo.desktop"
 }
