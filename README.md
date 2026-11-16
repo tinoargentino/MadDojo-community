@@ -16,14 +16,14 @@ The desktop packaging pipeline builds these native formats:
 | Platform | Installer |
 | --- | --- |
 | Windows x64 | Setup `.exe`, per-user install and Start menu shortcut |
-| macOS Apple Silicon | `.dmg`, drag MadDojo to Applications |
+| macOS Apple Silicon | Download blocked; corrected signing is being verified |
 | Linux x64 | `.AppImage` and `.deb` |
 
 [Download the Windows/Linux desktop beta](https://github.com/tinoargentino/MadDojo-community/releases/tag/v0.2.0-beta.1).
 
-Open the Windows Setup installer, drag MadDojo from the Mac disk image into
-Applications, or install the Linux package. The Mac build targets Apple Silicon
-on macOS 15 or newer. Linux packages were verified on Ubuntu 22.04.
+Open the Windows Setup installer or install the Linux package. Linux packages
+were verified on Ubuntu 22.04. Internal Mac builds target Apple Silicon on
+macOS 15 or newer.
 
 **The beta.1 Mac download is currently blocked by Gatekeeper with a “damaged”
 error. Do not treat it as ready for Mac installation.** Its build skipped code

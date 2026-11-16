@@ -49,10 +49,13 @@ file saving, close/relaunch, installation and replacement on each platform.
 For signed production Mac builds, configure repository secrets `MAC_CSC_LINK`,
 `MAC_CSC_KEY_PASSWORD`, `APPLE_API_KEY_BASE64`, `APPLE_API_KEY_ID`, and
 `APPLE_API_ISSUER`. Windows uses `WIN_CSC_LINK` and `WIN_CSC_KEY_PASSWORD`.
-The Mac API key is decoded to a temporary runner file. Stable versions require
-code signing; stable Mac versions also require notarization. No credentials belong in
-source. Unsigned preview builds must be labeled as such. Mac auto-update only
-works for a properly signed app.
+The Mac API key is decoded to a temporary runner file. All public Mac releases require Developer ID signing and notarization, including
+betas. Stable Windows versions require code signing. No credentials belong in
+source. Unsigned Windows preview builds must be labeled as such. Ad-hoc Mac builds are
+for internal testing only. Mac public release checks assess the actual final DMG
+after applying download quarantine, including code integrity, Developer ID, a
+stapled notarization ticket, and Gatekeeper approval. The publication script
+requires the assessment to match the installer checksum.
 
 Keep package.json's version, release tag, binaries, blockmaps and update metadata
 consistent. Publish the native installers and `latest*.yml` from the same build
