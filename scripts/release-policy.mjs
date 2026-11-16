@@ -10,3 +10,22 @@ export function validateMacRelease({version, assessment, assets, allowUnnotarize
   if (!allowUnnotarizedPreview) throw new Error('Mac public distribution requires Developer ID, notarization, and Gatekeeper approval');
   return {unnotarized: true};
 }
+
+// GitHub artifacts can nest installers under desktop/ when a report is included.
+export async function collectReleaseArtifacts(directory) {
+  const {readdir} = await import('node:fs/promises');
+  const path = await import('node:path');
+  const files = new Map();
+  async function walk(folder) {
+    for (const entry of await readdir(folder, {withFileTypes:true})) {
+      const location = path.join(folder, entry.name);
+      if (entry.isDirectory()) await walk(location);
+      else if (entry.isFile() && (entry.name === 'mac-assessment.json' || (/\.(exe|dmg|zip|AppImage|deb|yml|blockmap)$/.test(entry.name) && !entry.name.startsWith('builder-')))) {
+        if (files.has(entry.name)) throw new Error('Duplicate release artifact '+entry.name);
+        files.set(entry.name, path.resolve(location));
+      }
+    }
+  }
+  await walk(directory);
+  return files;
+}
