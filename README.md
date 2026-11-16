@@ -19,10 +19,20 @@ The desktop packaging pipeline builds these native formats:
 | macOS Apple Silicon | `.dmg`, drag MadDojo to Applications |
 | Linux x64 | `.AppImage` and `.deb` |
 
-Desktop builds are in verification. The `v0.1.0` release is the earlier source
-edition and is **not** a desktop installer. Check GitHub Releases for desktop
-preview assets once their native build and smoke checks pass. Signing and
-notarization must be configured before claiming a seamless public Mac release.
+[Download the desktop beta for your platform](https://github.com/tinoargentino/MadDojo-community/releases/tag/v0.2.0-beta.1).
+
+Open the Windows Setup installer, drag MadDojo from the Mac disk image into
+Applications, or install the Linux package. The Mac build targets Apple Silicon
+on macOS 15 or newer. Linux packages were verified on Ubuntu 22.04.
+
+Native installer, launch, recording/save, and shutdown checks passed on all three
+platforms. This beta is unsigned: Windows may show a publisher warning, and Mac
+first launch can require approval in Privacy & Security. Mac automatic updates
+remain disabled until a Developer ID signed edition is installed. Physical
+microphone/interface testing remains necessary before a stable release.
+
+Stop any source copy before opening the desktop app with the same library.
+The earlier `v0.1.0` release is a source archive, **not** the desktop installer.
 
 Open MadDojo, choose **Add songs**, select a practice mode, and import audio.
 The engine runs inside the app's lifecycle. Quitting closes the engine and its

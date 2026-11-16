@@ -42,7 +42,7 @@ never be written into the installed application's resources.
 The Desktop installers workflow creates CI artifacts after packaged smoke and
 installer checks. With its Publish option enabled, or on a matching `v*` tag,
 it publishes a complete release only after all three native jobs succeed. Update
-metadata is uploaded alongside its binaries while the release is still a draft. Before a desktop
+metadata is uploaded alongside its binaries while the release is still a draft. Before a stable desktop
 release, verify import/separation/playback, physical microphone recording,
 file saving, close/relaunch, installation and replacement on each platform.
 

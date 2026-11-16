@@ -17,15 +17,26 @@ sandboxed Electron 45.3.3 (no sandbox-disabling flags):
 - Parent-stdin closure shuts down the server and its active processing worker.
 - Production npm dependencies have no findings in `npm audit --omit=dev` at build time.
 
-The initial cross-platform source-test matrix passed on native Linux, Windows,
-and Apple Silicon macOS runners after fixing Windows UTF-8 decoding. Native
-desktop installer verification is separate and must pass before publication.
+The source-test matrix passes on native Linux, Windows, and Apple Silicon macOS.
+The desktop beta's [native build and installer matrix](https://github.com/tinoargentino/MadDojo-community/actions/runs/43924715942)
+also passed all three jobs before [publication](https://github.com/tinoargentino/MadDojo-community/releases/tag/v0.2.0-beta.1).
+
+- Windows: real bundled separation/exports; packaged app recording/save;
+  NSIS installation; installed app recording/save; silent uninstall.
+- macOS: real bundled separation/exports; packaged app recording/save; launch
+  and recording/save from the final read-only disk image.
+- Linux: real bundled separation/exports; packaged app recording/save; DEB
+  install, launch, record/save, and removal; actual AppImage launch and recording;
+  update download and checksum rejection integration.
+
+Public installer downloads and update manifests were checked anonymously.
+Every published file's SHA-256 matches the release checksum manifest. Windows
+and Linux executable headers were checked via ranged public downloads.
 
 ## Checks still required for a production release
 
-- Native Windows and macOS packaged launch/record/shutdown verification.
 - Physical microphone, headphones, input/output selection, and measured latency.
-- Human installer/uninstaller checks on clean machines.
+- Human first-launch approval and device checks on ordinary desktop machines.
 - Replacement and relaunch across versions. A local release-feed integration check
   already verifies discovery, download, hash validation, corrupted-file rejection,
   and preservation of the installed binary; it uses a simulated prior version.
