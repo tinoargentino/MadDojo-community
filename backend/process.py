@@ -8,6 +8,10 @@ from pathlib import Path
 import subprocess
 import sys
 
+if os.environ.get('DOJO_DIAGNOSTICS'):
+    import faulthandler
+    faulthandler.dump_traceback_later(120)
+
 import numpy as np
 import soundfile as sf
 

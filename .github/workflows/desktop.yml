@@ -2,6 +2,11 @@ name: Desktop installers
 on:
   workflow_dispatch:
     inputs:
+      platform:
+        description: Native build target (publishing requires all)
+        type: choice
+        options: [all, windows, macos, linux]
+        default: all
       publish:
         description: Publish the verified installer set to GitHub Releases
         type: boolean
@@ -15,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-latest, macos-15]
+        os: ${{ fromJSON(inputs.platform == 'windows' && '["windows-latest"]' || inputs.platform == 'macos' && '["macos-15"]' || inputs.platform == 'linux' && '["ubuntu-22.04"]' || '["ubuntu-22.04","windows-latest","macos-15"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     env:
@@ -152,7 +157,7 @@ jobs:
 
   release:
     needs: desktop
-    if: inputs.publish || startsWith(github.ref, 'refs/tags/v')
+    if: (inputs.publish || startsWith(github.ref, 'refs/tags/v')) && (inputs.platform == '' || inputs.platform == 'all')
     runs-on: ubuntu-latest
     permissions:
       contents: write

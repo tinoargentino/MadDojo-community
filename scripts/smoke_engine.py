@@ -54,8 +54,12 @@ with tempfile.TemporaryDirectory(prefix='maddojo-engine-check-') as tmp:
             body = (f'--{boundary}\r\nContent-Disposition: form-data; name="mode"\r\n\r\nguitar\r\n--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="desktop-check.wav"\r\nContent-Type: audio/wav\r\n\r\n'.encode() + stream.getvalue() + f'\r\n--{boundary}--\r\n'.encode())
             imported = json.loads(request('/api/import', body, 'multipart/form-data; boundary=' + boundary))
             song_id = imported['song']['id']
-            for _ in range(600):
+            last_stage = None
+            for _ in range(1200):
                 song = next(s for s in json.loads(request('/api/library'))['songs'] if s['id'] == song_id)
+                if song.get('stage') != last_stage:
+                    last_stage = song.get('stage')
+                    print(f'Bundled processing: {last_stage}', flush=True)
                 if song['status'] == 'error': raise RuntimeError(song.get('error'))
                 if song['status'] == 'ready': break
                 time.sleep(.5)
