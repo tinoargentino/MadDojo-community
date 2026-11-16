@@ -1,5 +1,18 @@
 # Verification
 
+## Mac download rejection
+
+A user-reported browser download of beta.1 is blocked by macOS as “damaged”.
+The published build log shows that application signing was skipped. The original
+Mac smoke checks invoked `Contents/MacOS/MadDojo` directly and did not assess
+Gatekeeper policy for a quarantined download. Their successful result does not
+establish that Finder can launch the downloaded app.
+
+The build now requests an explicit ad-hoc signature for internal builds without
+an Apple identity. Public releases require a matching final-DMG assessment with
+valid code signatures, Developer ID identity, notarization/stapled ticket, and
+Gatekeeper acceptance. Ad-hoc signing alone is not public distribution approval.
+
 ## Current desktop implementation
 
 Verified locally on Linux with the bundled portable Python CPU engine and

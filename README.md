@@ -19,17 +19,22 @@ The desktop packaging pipeline builds these native formats:
 | macOS Apple Silicon | `.dmg`, drag MadDojo to Applications |
 | Linux x64 | `.AppImage` and `.deb` |
 
-[Download the desktop beta for your platform](https://github.com/tinoargentino/MadDojo-community/releases/tag/v0.2.0-beta.1).
+[Download the Windows/Linux desktop beta](https://github.com/tinoargentino/MadDojo-community/releases/tag/v0.2.0-beta.1).
 
 Open the Windows Setup installer, drag MadDojo from the Mac disk image into
 Applications, or install the Linux package. The Mac build targets Apple Silicon
 on macOS 15 or newer. Linux packages were verified on Ubuntu 22.04.
 
-Native installer, launch, recording/save, and shutdown checks passed on all three
-platforms. This beta is unsigned: Windows may show a publisher warning, and Mac
-first launch can require approval in Privacy & Security. Mac automatic updates
-remain disabled until a Developer ID signed edition is installed. Physical
-microphone/interface testing remains necessary before a stable release.
+**The beta.1 Mac download is currently blocked by Gatekeeper with a “damaged”
+error. Do not treat it as ready for Mac installation.** Its build skipped code
+signing. The direct-executable CI checks passed but did not cover downloaded-app
+security assessment. Mac public releases now require valid Developer ID signing,
+notarization, a stapled ticket, and Gatekeeper approval. Corrected internal builds
+are being verified; no replacement Mac download is advertised yet.
+
+Windows and Linux installer, recording/save, and shutdown checks passed. The
+Windows preview may show an unverified-publisher warning. Physical microphone
+and audio-interface testing remains necessary before a stable release.
 
 Stop any source copy before opening the desktop app with the same library.
 The earlier `v0.1.0` release is a source archive, **not** the desktop installer.
